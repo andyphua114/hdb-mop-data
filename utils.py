@@ -6,7 +6,7 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 from shapely.geometry import Point
-
+import time
 
 def check_response(response):
     """Check the response based on status code.
@@ -91,6 +91,34 @@ def find_name_for_point(lon: float, lat: float, name_to_geom: dict) -> str | Non
             return name
     return None
 
+def poll_download(dataset_id):
+    response = requests.get(
+            f"https://api-open.data.gov.sg/v1/public/api/datasets/{dataset_id}/poll-download",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(
+                {
+                    "columnNames": [
+                        "blk_no",
+                        "street",
+                        "max_floor_lvl",
+                        "year_completed",
+                        "bldg_contract_town",
+                        "residential",
+                        "2room_sold",
+                        "3room_sold",
+                        "4room_sold",
+                        "5room_sold"
+                    ],
+                    # change the filter accordinly
+                    "filters": [
+                        {"columnName": "year_completed", "type": "EQ", "value": 2021},
+                    ],
+                }
+            ),
+        )
+
+    data = response.json()
+    return data
 
 def download_hdb_property_info():
     # HDB Property Information
@@ -108,8 +136,10 @@ def download_hdb_property_info():
                     "year_completed",
                     "bldg_contract_town",
                     "residential",
+                    "2room_sold",
                     "3room_sold",
                     "4room_sold",
+                    "5room_sold",
                 ],
                 "filters": [
                     {"columnName": "year_completed", "type": "EQ", "value": 2021},
@@ -121,41 +151,26 @@ def download_hdb_property_info():
     data = response.json()
     print(data["data"]["message"])
 
-    response = requests.get(
-        f"https://api-open.data.gov.sg/v1/public/api/datasets/{dataset_id}/poll-download",
-        headers={"Content-Type": "application/json"},
-        data=json.dumps(
-            {
-                "columnNames": [
-                    "blk_no",
-                    "street",
-                    "max_floor_lvl",
-                    "year_completed",
-                    "bldg_contract_town",
-                    "residential",
-                    "3room_sold",
-                    "4room_sold",
-                ],
-                # change the filter accordinly
-                "filters": [
-                    {"columnName": "year_completed", "type": "EQ", "value": 2021},
-                ],
-            }
-        ),
-    )
+    data = poll_download(dataset_id)
 
-    data = response.json()
+    # keep polling until data url is returned; wait for 2 secs between each poll
+    while data['data']['status'] != "DOWNLOAD_SUCCESS":
+        print("Upstream still processing; continue polling...")
+        time.sleep(2)
+        data = poll_download()
 
     df = pd.read_csv(data["data"]["url"])
 
-    # convert 3room_sold and 4room_sold columns to type int
-    # convert other columns as necessary, e.g. for 2room_sold, 5room_sold
+    # convert 2room, 3room, 4room, 5room_sold columns to type int
+    # convert other columns as necessary
+    df["2room_sold"] = df["2room_sold"].astype(int)
     df["3room_sold"] = df["3room_sold"].astype(int)
     df["4room_sold"] = df["4room_sold"].astype(int)
+    df["5room_sold"] = df["5room_sold"].astype(int)
 
-    # filter for residential = 'Y' and 3room_sold > 0 and 4room_sold > 0
+    # filter for residential = 'Y' and (2room_sold > or 3room_sold > 0 or 4room_sold > 0 or 5room_sold > 0)
     df = df[
-        (df["residential"] == "Y") & ((df["3room_sold"] > 0) | (df["4room_sold"] > 0))
+        (df["residential"] == "Y") & ((df["2room_sold"] > 0) | (df["3room_sold"] > 0)| (df["4room_sold"] > 0)| (df["5room_sold"] > 0))
     ]
 
     print(f"Total number of HDBs: {len(df)}")

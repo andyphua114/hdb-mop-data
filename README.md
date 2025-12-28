@@ -9,6 +9,8 @@ It bridges a gap found in this article from *The Straits Times*:
 While the article breaks down the number of flats by **town**, it does **not** provide a breakdown by **HDB project name / estate**.
 👉 **This project provides that missing granularity.**
 
+![HDB Project MOP Breakdown]("data/hdb_projects_mop_2026.png")
+
 ---
 
 ## ✨ What This Project Produces
@@ -23,7 +25,7 @@ Each row represents **a block that meets ALL of the following criteria:**
 
 ✔ Completed in **2021**
 ✔ Classified as **residential**
-✔ Contains **3-room and/or 4-room units**
+✔ Contains **2-room, 3-room, 4-room and/or 5-room units**
 ✔ Mapped to its **HDB project / estate name**
 
 If you don’t want to run the scripts — simply download this CSV from the `data/` folder.
@@ -50,7 +52,7 @@ We query the dataset for blocks that:
 
 * were **completed in 2021**
 * are **residential**
-* have **3-room or 4-room units sold**
+* have **2-room, 3-room, 4-room and/or 5-room units sold**
 
 We also fetch the **town metadata mapping** and geocode each block address to **lat/lon using OneMap**.
 Implementation: `utils.py` 
@@ -155,7 +157,7 @@ This will:
 | street                  | Street name                             |
 | year_completed          | Year HDB block completed                |
 | area                    | HDB town                                |
-| 3room_sold / 4room_sold | Units sold                              |
+| 2room_sold / 3room_sold / 4room_sold / 5room_sold | Units sold                              |
 | address                 | Combined address                        |
 | lat / lon               | Geocoded coordinates                    |
 | name                    | **HDB project / estate name**           |
@@ -167,7 +169,7 @@ This will:
 1. OneMap geocoding returns the **closest match**, so edge cases may mis-map
 2. A block must fall **inside one and only one project polygon**
 3. Only **2021 completion year** is included
-4. Only **3-room & 4-room residential flats are considered**
+4. Only **2-room, 3-room, 4-room & 5-room residential flats are considered**
 
 ---
 
