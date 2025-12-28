@@ -9,7 +9,7 @@ It bridges a gap found in this article from *The Straits Times*:
 While the article breaks down the number of flats by **town**, it does **not** provide a breakdown by **HDB project name / estate**.
 👉 **This project provides that missing granularity.**
 
-![HDB Project MOP Breakdown]("data/hdb_projects_mop_2026.png")
+<img src="data/hdb_projects_mop_2026.png" alt="HDB Projects MOP 2026" width="900">
 
 ---
 
