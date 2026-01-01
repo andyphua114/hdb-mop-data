@@ -84,7 +84,7 @@ Implementation: `main.py`
 The resulting file is:
 
 ```
-data/hdb-property-info-with-name.csv
+data/hdb-property-info-with-name-2026.csv
 ```
 
 ---
@@ -96,9 +96,9 @@ data/hdb-property-info-with-name.csv
 ├── main.py
 ├── utils.py
 ├── data/
-│   ├── hdb-property-info.csv
-│   ├── hdb_name_to_coords.json
-│   └── hdb-property-info-with-name.csv   👈 Final dataset
+│   ├── hdb-property-info-mop-2026.csv
+│   ├── hdb_name_to_coords-mop.json
+│   └── hdb-property-info-with-name-2026.csv   👈 Final dataset
 ├── .env                                  👈 Your OneMap credentials
 ├── requirements.txt
 └── README.md
@@ -147,6 +147,16 @@ This will:
 3. Match HDB blocks to HDB project polygons
 4. Produce the final CSV
 
+### Running for a different MOP year (optional)
+
+By default, the script processes HDB blocks that will reach MOP in **2026**.
+
+You can override this using the optional `--year` flag:
+
+```python
+python main.py --year 2027
+```
+
 ---
 
 ## 📊 Key Columns in Final CSV
@@ -170,6 +180,7 @@ This will:
 2. A block must fall **inside one and only one project polygon**
 3. Only **2021 completion year** is included
 4. Only **2-room, 3-room, 4-room & 5-room residential flats are considered**
+5. There may be some HDB project names that could not be found in the dataset (I have manually filled in the data).
 
 ---
 

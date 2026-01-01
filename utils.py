@@ -1,12 +1,13 @@
 import json
 import os
+import time
 from pathlib import Path
 
 import pandas as pd
 import requests
 from dotenv import load_dotenv
 from shapely.geometry import Point
-import time
+
 
 def check_response(response):
     """Check the response based on status code.
@@ -91,36 +92,38 @@ def find_name_for_point(lon: float, lat: float, name_to_geom: dict) -> str | Non
             return name
     return None
 
-def poll_download(dataset_id):
+
+def poll_download(dataset_id, year):
     response = requests.get(
-            f"https://api-open.data.gov.sg/v1/public/api/datasets/{dataset_id}/poll-download",
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(
-                {
-                    "columnNames": [
-                        "blk_no",
-                        "street",
-                        "max_floor_lvl",
-                        "year_completed",
-                        "bldg_contract_town",
-                        "residential",
-                        "2room_sold",
-                        "3room_sold",
-                        "4room_sold",
-                        "5room_sold"
-                    ],
-                    # change the filter accordinly
-                    "filters": [
-                        {"columnName": "year_completed", "type": "EQ", "value": 2021},
-                    ],
-                }
-            ),
-        )
+        f"https://api-open.data.gov.sg/v1/public/api/datasets/{dataset_id}/poll-download",
+        headers={"Content-Type": "application/json"},
+        data=json.dumps(
+            {
+                "columnNames": [
+                    "blk_no",
+                    "street",
+                    "max_floor_lvl",
+                    "year_completed",
+                    "bldg_contract_town",
+                    "residential",
+                    "2room_sold",
+                    "3room_sold",
+                    "4room_sold",
+                    "5room_sold",
+                ],
+                # change the filter accordinly
+                "filters": [
+                    {"columnName": "year_completed", "type": "EQ", "value": year - 5},
+                ],
+            }
+        ),
+    )
 
     data = response.json()
     return data
 
-def download_hdb_property_info():
+
+def download_hdb_property_info(year=2026):
     # HDB Property Information
     dataset_id = "d_17f5382f26140b1fdae0ba2ef6239d2f"
 
@@ -142,7 +145,7 @@ def download_hdb_property_info():
                     "5room_sold",
                 ],
                 "filters": [
-                    {"columnName": "year_completed", "type": "EQ", "value": 2021},
+                    {"columnName": "year_completed", "type": "EQ", "value": year - 5},
                 ],
             }
         ),
@@ -151,13 +154,13 @@ def download_hdb_property_info():
     data = response.json()
     print(data["data"]["message"])
 
-    data = poll_download(dataset_id)
+    data = poll_download(dataset_id, year)
 
     # keep polling until data url is returned; wait for 2 secs between each poll
-    while data['data']['status'] != "DOWNLOAD_SUCCESS":
+    while data["data"]["status"] != "DOWNLOAD_SUCCESS":
         print("Upstream still processing; continue polling...")
         time.sleep(2)
-        data = poll_download()
+        data = poll_download(dataset_id, year)
 
     df = pd.read_csv(data["data"]["url"])
 
@@ -170,7 +173,13 @@ def download_hdb_property_info():
 
     # filter for residential = 'Y' and (2room_sold > or 3room_sold > 0 or 4room_sold > 0 or 5room_sold > 0)
     df = df[
-        (df["residential"] == "Y") & ((df["2room_sold"] > 0) | (df["3room_sold"] > 0)| (df["4room_sold"] > 0)| (df["5room_sold"] > 0))
+        (df["residential"] == "Y")
+        & (
+            (df["2room_sold"] > 0)
+            | (df["3room_sold"] > 0)
+            | (df["4room_sold"] > 0)
+            | (df["5room_sold"] > 0)
+        )
     ]
 
     print(f"Total number of HDBs: {len(df)}")
@@ -208,7 +217,7 @@ def download_hdb_property_info():
         df["address"].apply(lambda x: get_latlon(x, token=token)).apply(pd.Series)
     )
 
-    df.to_csv("data/hdb-property-info.csv", index=False)
+    df.to_csv(f"data/hdb-property-info-mop-{year}.csv", index=False)
 
 
 def download_hdb_name_info():
@@ -238,16 +247,16 @@ def download_hdb_name_info():
         json.dump(hdb_name_to_coords, f, ensure_ascii=False, indent=4)
 
 
-def download_data():
+def download_data(year=2026):
     data_dir = Path("data")
 
-    file1 = data_dir / "hdb-property-info.csv"
+    file1 = data_dir / f"hdb-property-info-mop-{year}.csv"
     file2 = data_dir / "hdb_name_to_coords.json"
 
     if file1.exists():
         print(f"{file1.name} exists, skipping download.")
     else:
-        download_hdb_property_info()
+        download_hdb_property_info(year)
 
     if file2.exists():
         print(f"{file2.name} exists, skipping download.")
