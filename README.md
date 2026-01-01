@@ -18,7 +18,7 @@ While the article breaks down the number of flats by **town**, it does **not** p
 A dataset named:
 
 ```
-data/hdb-property-info-with-name.csv
+data/hdb-property-info-with-name-2026.csv
 ```
 
 Each row represents **a block that meets ALL of the following criteria:**
@@ -28,7 +28,7 @@ Each row represents **a block that meets ALL of the following criteria:**
 ✔ Contains **2-room, 3-room, 4-room and/or 5-room units**
 ✔ Mapped to its **HDB project / estate name**
 
-If you don’t want to run the scripts — simply download this CSV from the `data/` folder.
+If you don’t want to run the scripts — simply download this CSV from the `data/` folder. There are also data available for HDB flats to MOP in year 2027 and 2028.
 
 ---
 
