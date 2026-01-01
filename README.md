@@ -97,7 +97,7 @@ data/hdb-property-info-with-name-2026.csv
 ├── utils.py
 ├── data/
 │   ├── hdb-property-info-mop-2026.csv
-│   ├── hdb_name_to_coords-mop.json
+│   ├── hdb_name_to_coords.json
 │   └── hdb-property-info-with-name-2026.csv   👈 Final dataset
 ├── .env                                  👈 Your OneMap credentials
 ├── requirements.txt
